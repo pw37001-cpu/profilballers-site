@@ -7,7 +7,6 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = env("TURSO_DATABASE_URL")
 }
 
 // User entity - For authentication
@@ -244,7 +243,7 @@ model PlayerMatchStats {
   ast       Int      @default(0)    // Assists
   blk       Int      @default(0)    // Blocks
   stl       Int      @default(0)    // Steals
-  to        Int      @default(0)    // Turnovers
+  turnovers Int      @default(0)    // Turnovers
   pf        Int      @default(0)    // Personal fouls
   // Shooting stats
   fgMade    Int      @default(0)    // Field goals made
@@ -268,4 +267,5 @@ model PlayerMatchStats {
   @@unique([matchId, playerId])
   @@index([matchId])
   @@index([playerId])
+  @@map("PlayerMatchStats")
 }
