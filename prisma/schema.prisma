@@ -1,0 +1,270 @@
+// ProfilBallers - Basketball Player Directory for Ivory Coast
+// Prisma Schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// User entity - For authentication
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  password      String   // Hashed password
+  name          String?
+  role          String   @default("player") // "player", "admin"
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  playerId      String?  @unique
+  player        Player?  @relation(fields: [playerId], references: [id])
+  sessions      Session[]
+
+  @@index([email])
+}
+
+// Session entity - For user sessions
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+// Club entity - Basketball clubs in Ivory Coast
+model Club {
+  id        String   @id @default(cuid())
+  name      String
+  city      String
+  level     String   // N1, N2, N3
+  logo      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  players      Player[]
+  history      PlayerHistory[]
+  homeMatches  Match[]  @relation("HomeMatches")
+  awayMatches  Match[]  @relation("AwayMatches")
+
+  @@index([level])
+  @@index([city])
+}
+
+// Player entity - Basketball players
+model Player {
+  id            String   @id @default(cuid())
+  lastName      String
+  firstName     String
+  gender        String   // "M" or "F"
+  birthYear     Int
+  height        Int      // in cm
+  weight        Int?     // in kg
+  position      String   // PG, SG, SF, PF, C
+  strongHand    String?  // "left", "right", "both"
+  photo         String?
+  city          String?
+  country       String   @default("Côte d'Ivoire")
+  // Contact information
+  email         String?
+  phone         String?
+  // Social media links
+  youtubeLink   String?
+  instagramLink String?
+  twitterLink   String?
+  facebookLink  String?
+  tiktokLink    String?
+  status        String   @default("pending") // "pending", "published", "rejected"
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  currentClubId String?
+  currentClub   Club?    @relation(fields: [currentClubId], references: [id])
+  history       PlayerHistory[]
+  statistics    Statistic[]
+  matchStats    PlayerMatchStats[]
+  user          User?    @relation
+
+  @@index([status])
+  @@index([position])
+  @@index([gender])
+  @@index([lastName, firstName])
+}
+
+// PlayerHistory - Club history for each season
+model PlayerHistory {
+  id        String   @id @default(cuid())
+  season    String   // Format: "2024-2025"
+  createdAt DateTime @default(now())
+
+  // Relations
+  playerId  String
+  player    Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  clubId    String
+  club      Club     @relation(fields: [clubId], references: [id])
+
+  @@unique([playerId, season])
+  @@index([playerId])
+  @@index([clubId])
+}
+
+// Statistic - Player statistics by season (aggregated from match stats)
+model Statistic {
+  id        String   @id @default(cuid())
+  season    String   // Format: "2024-2025"
+  games     Int      @default(0)
+  pts       Float    @default(0)    // Points per game average
+  reb       Float    @default(0)    // Rebounds per game average
+  ast       Float    @default(0)    // Assists per game average
+  blk       Float    @default(0)    // Blocks per game average
+  stl       Float    @default(0)    // Steals per game average
+  fgPercent Float?   // Field goal percentage
+  threePt   Float?   // 3-point percentage
+  ftPercent Float?   // Free throw percentage
+  min       Float    @default(0)    // Minutes per game average
+  // Totals (for advanced calculations)
+  totalPts  Int      @default(0)    // Total points
+  totalReb  Int      @default(0)    // Total rebounds
+  totalAst  Int      @default(0)    // Total assists
+  totalBlk  Int      @default(0)    // Total blocks
+  totalStl  Int      @default(0)    // Total steals
+  totalMin  Int      @default(0)    // Total minutes
+  fgMade    Int      @default(0)    // Field goals made
+  fgAtt     Int      @default(0)    // Field goals attempted
+  threeMade Int      @default(0)    // 3-pointers made
+  threeAtt  Int      @default(0)    // 3-pointers attempted
+  ftMade    Int      @default(0)    // Free throws made
+  ftAtt     Int      @default(0)    // Free throws attempted
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  playerId  String
+  player    Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@unique([playerId, season])
+  @@index([playerId])
+}
+
+// Match - Basketball match between two teams
+model Match {
+  id          String   @id @default(cuid())
+  date        DateTime
+  season      String   // Format: "2024-2025"
+  homeScore   Int      @default(0)
+  awayScore   Int      @default(0)
+  status      String   @default("scheduled") // "scheduled", "completed", "postponed", "cancelled"
+  venue       String?  // Stadium/Arena name
+  notes       String?  // Match notes
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  homeClubId  String
+  homeClub    Club     @relation("HomeMatches", fields: [homeClubId], references: [id])
+  awayClubId  String
+  awayClub    Club     @relation("AwayMatches", fields: [awayClubId], references: [id])
+  playerStats PlayerMatchStats[]
+
+  @@index([date])
+  @@index([season])
+  @@index([homeClubId])
+  @@index([awayClubId])
+}
+
+// SiteSettings - Site configuration and customization
+model SiteSettings {
+  id              String   @id @default(cuid())
+  // Site Info
+  siteName        String   @default("ProfilBallers")
+  siteDescription String   @default("L'annuaire des joueurs de basketball ivoirien")
+  siteLogo        String?
+  siteFavicon     String?
+  // Hero Section
+  heroTitle       String   @default("Découvrez les talents du basketball ivoirien")
+  heroSubtitle    String   @default("L'annuaire des joueurs de N1, N2 et N3")
+  heroButtonText  String   @default("Explorer les joueurs")
+  // Colors (Tailwind classes)
+  primaryColor    String   @default("orange")
+  accentColor     String   @default("amber")
+  // Contact
+  contactEmail    String?
+  contactPhone    String?
+  contactAddress  String?
+  // Social Links
+  facebookUrl     String?
+  twitterUrl      String?
+  instagramUrl    String?
+  youtubeUrl      String?
+  // Footer
+  footerText      String   @default("© 2024 ProfilBallers. Tous droits réservés.")
+  // Feature Flags
+  enableRegistration Boolean @default(true)
+  enableSubmission   Boolean @default(true)
+  enableMatches      Boolean @default(true)
+  // SEO
+  metaKeywords    String?
+  metaAuthor      String?
+  // Custom CSS
+  customCss       String?
+  // Timestamps
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// CustomPage - Custom pages created via AI
+model CustomPage {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  content     String   // HTML or Markdown content
+  isPublished Boolean  @default(false)
+  showInMenu  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// PlayerMatchStats - Individual player statistics for a specific match
+model PlayerMatchStats {
+  id        String   @id @default(cuid())
+  // Basic stats
+  min       Int      @default(0)    // Minutes played
+  pts       Int      @default(0)    // Points scored
+  reb       Int      @default(0)    // Rebounds
+  ast       Int      @default(0)    // Assists
+  blk       Int      @default(0)    // Blocks
+  stl       Int      @default(0)    // Steals
+  to        Int      @default(0)    // Turnovers
+  pf        Int      @default(0)    // Personal fouls
+  // Shooting stats
+  fgMade    Int      @default(0)    // Field goals made
+  fgAtt     Int      @default(0)    // Field goals attempted
+  threeMade Int      @default(0)    // 3-pointers made
+  threeAtt  Int      @default(0)    // 3-pointers attempted
+  ftMade    Int      @default(0)    // Free throws made
+  ftAtt     Int      @default(0)    // Free throws attempted
+  // Advanced stats
+  plusMinus Int      @default(0)    // Plus/minus (+/- while on court)
+  eff       Float    @default(0)    // Efficiency rating
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  matchId   String
+  match     Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  playerId  String
+  player    Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@unique([matchId, playerId])
+  @@index([matchId])
+  @@index([playerId])
+}

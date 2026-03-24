@@ -1,0 +1,54 @@
+# dependencies (bun install)
+node_modules
+
+# output
+out
+dist
+*.tgz
+
+# code coverage
+coverage
+*.lcov
+
+# logs
+logs
+_.log
+report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
+
+# dotenv environment variable files
+.env
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local
+
+# caches
+.eslintcache
+.cache
+*.tsbuildinfo
+
+# Next.js
+.next
+
+# Database (local SQLite)
+db/*.db
+db/*.db-journal
+
+# IntelliJ based IDEs
+.idea
+
+# Finder (MacOS) folder config
+.DS_Store
+
+# Upload folder
+upload/
+
+# Large media files
+*.mp4
+*.mov
+*.avi
+*.webm
+
+# Prisma
+prisma/*.db
+prisma/*.db-journal
