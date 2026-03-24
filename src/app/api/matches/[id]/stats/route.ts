@@ -86,7 +86,7 @@ export async function POST(
       fgMade: stats.fgMade || 0,
       ftAtt: stats.ftAtt || 0,
       ftMade: stats.ftMade || 0,
-      to: stats.to || 0,
+      turnovers: stats.turnovers || 0,
     });
 
     // Upsert player stats
@@ -106,7 +106,7 @@ export async function POST(
         ast: stats.ast || 0,
         blk: stats.blk || 0,
         stl: stats.stl || 0,
-        to: stats.to || 0,
+        turnovers: stats.turnovers || 0,
         pf: stats.pf || 0,
         fgMade: stats.fgMade || 0,
         fgAtt: stats.fgAtt || 0,
@@ -124,7 +124,7 @@ export async function POST(
         ast: stats.ast || 0,
         blk: stats.blk || 0,
         stl: stats.stl || 0,
-        to: stats.to || 0,
+        turnovers: stats.turnovers || 0,
         pf: stats.pf || 0,
         fgMade: stats.fgMade || 0,
         fgAtt: stats.fgAtt || 0,

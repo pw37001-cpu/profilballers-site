@@ -1,19 +1,10 @@
 import { MetadataRoute } from 'next'
 import { db } from '@/lib/db'
 
+export const dynamic = 'force-dynamic'
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://profilballers.ci'
-  
-  // Get all published players
-  const players = await db.player.findMany({
-    where: { status: 'published' },
-    select: { id: true, updatedAt: true }
-  })
-  
-  // Get all clubs
-  const clubs = await db.club.findMany({
-    select: { id: true, updatedAt: true }
-  })
 
   // Static pages
   const staticPages = [
@@ -37,21 +28,37 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ]
 
-  // Player pages (dynamic)
-  const playerPages = players.map((player) => ({
-    url: `${baseUrl}/?player=${player.id}`,
-    lastModified: player.updatedAt,
-    changeFrequency: 'weekly' as const,
-    priority: 0.8,
-  }))
+  try {
+    // Get all published players
+    const players = await db.player.findMany({
+      where: { status: 'published' },
+      select: { id: true, updatedAt: true }
+    })
 
-  // Club pages (dynamic)
-  const clubPages = clubs.map((club) => ({
-    url: `${baseUrl}/?club=${club.id}`,
-    lastModified: club.updatedAt,
-    changeFrequency: 'weekly' as const,
-    priority: 0.7,
-  }))
+    // Get all clubs
+    const clubs = await db.club.findMany({
+      select: { id: true, updatedAt: true }
+    })
 
-  return [...staticPages, ...playerPages, ...clubPages]
+    // Player pages (dynamic)
+    const playerPages = players.map((player) => ({
+      url: `${baseUrl}/?player=${player.id}`,
+      lastModified: player.updatedAt,
+      changeFrequency: 'weekly' as const,
+      priority: 0.8,
+    }))
+
+    // Club pages (dynamic)
+    const clubPages = clubs.map((club) => ({
+      url: `${baseUrl}/?club=${club.id}`,
+      lastModified: club.updatedAt,
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    }))
+
+    return [...staticPages, ...playerPages, ...clubPages]
+  } catch (error) {
+    console.error('Error generating sitemap:', error)
+    return staticPages
+  }
 }

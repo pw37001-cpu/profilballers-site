@@ -14,7 +14,7 @@ export function calculateEfficiency(stats: {
   fgMade: number;
   ftAtt: number;
   ftMade: number;
-  to: number;
+  turnovers: number;
 }): number {
   const missedFG = stats.fgAtt - stats.fgMade;
   const missedFT = stats.ftAtt - stats.ftMade;
@@ -24,7 +24,7 @@ export function calculateEfficiency(stats: {
     stats.ast +
     stats.stl +
     stats.blk -
-    (missedFG + missedFT + stats.to);
+    (missedFG + missedFT + stats.turnovers);
   return Math.round(efficiency * 100) / 100;
 }
 
