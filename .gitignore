@@ -52,3 +52,4 @@ upload/
 # Prisma
 prisma/*.db
 prisma/*.db-journal
+libsql.tar.gz
