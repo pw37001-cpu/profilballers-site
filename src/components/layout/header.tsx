@@ -2,8 +2,9 @@
 
 import { useAppStore, ViewType } from "@/lib/store";
 import { Button } from "@/components/ui/button";
-import { CircleDot, Users, UserPlus } from "lucide-react";
+import { CircleDot, Users, UserPlus, Settings } from "lucide-react";
 import { UserDropdown } from "@/components/auth/user-dropdown";
+import { useState, useEffect } from "react";
 
 const navItems: { view: ViewType; label: string; icon: React.ReactNode }[] = [
   { view: "home", label: "Accueil", icon: <CircleDot className="w-4 h-4" /> },
@@ -12,6 +13,22 @@ const navItems: { view: ViewType; label: string; icon: React.ReactNode }[] = [
 
 export function Header() {
   const { currentView, setCurrentView } = useAppStore();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      try {
+        const response = await fetch("/api/user/me");
+        if (response.ok) {
+          const data = await response.json();
+          setIsAdmin(data.user?.role === "admin");
+        }
+      } catch (error) {
+        console.error("Error checking admin status:", error);
+      }
+    };
+    checkAdmin();
+  }, []);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -44,6 +61,17 @@ export function Header() {
               {item.label}
             </Button>
           ))}
+          {isAdmin && (
+            <Button
+              variant={currentView === "admin" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setCurrentView("admin")}
+              className="gap-2"
+            >
+              <Settings className="w-4 h-4" />
+              Admin
+            </Button>
+          )}
         </nav>
 
         {/* Right side */}
@@ -72,6 +100,15 @@ export function Header() {
               {item.icon}
             </Button>
           ))}
+          {isAdmin && (
+            <Button
+              variant={currentView === "admin" ? "default" : "ghost"}
+              size="icon"
+              onClick={() => setCurrentView("admin")}
+            >
+              <Settings className="w-4 h-4" />
+            </Button>
+          )}
         </nav>
       </div>
     </header>
